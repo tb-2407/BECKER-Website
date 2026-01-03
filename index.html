@@ -309,9 +309,10 @@ input:focus, textarea:focus {
 
     let img = o.getImageData(0, 0, W, H).data;
 
-    // Sample BECKER with normal density
-    for (let y = 0; y < H; y += 1.5) {
-      for (let x = 0; x < W; x += 1.5) {
+    // Sample BECKER - tighter grid on mobile for sharper edges
+    const beckerStep = isMobile ? 1.0 : 1.5;
+    for (let y = 0; y < H; y += beckerStep) {
+      for (let x = 0; x < W; x += beckerStep) {
         const a = img[(Math.floor(y) * W + Math.floor(x)) * 4 + 3] / 255;
         if (a < 0.15) continue;
         if (Math.random() > 0.55) continue;
@@ -339,9 +340,10 @@ input:focus, textarea:focus {
 
     img = o.getImageData(0, 0, W, H).data;
 
-    // Sample subtitle with very fine density for better readability
-    for (let y = 0; y < H; y += 0.6) {
-      for (let x = 0; x < W; x += 0.6) {
+    // Sample subtitle - tighter grid on mobile for sharper edges
+    const subStep = isMobile ? 0.4 : 0.6;
+    for (let y = 0; y < H; y += subStep) {
+      for (let x = 0; x < W; x += subStep) {
         const a = img[(Math.floor(y) * W + Math.floor(x)) * 4 + 3] / 255;
         if (a < 0.1) continue;
         if (Math.random() > 0.8) continue;
