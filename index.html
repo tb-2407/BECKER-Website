@@ -274,6 +274,7 @@ input:focus, textarea:focus {
   let particles = [];
   let mouse = { x: -9999, y: -9999 };
   let scrollProgress = 0;
+  let pixelSize = 1;
 
   function resize() {
     W = canvas.width = canvas.offsetWidth;
@@ -296,6 +297,9 @@ input:focus, textarea:focus {
     // Subtitle significantly larger on mobile for better readability
     const isMobile = W < 768;
     let subSize = mainSize * (isMobile ? 0.22 : 0.14);
+
+    // Larger pixels on mobile for clearer text
+    pixelSize = isMobile ? 2 : 1;
     const mainY = H / 2 - subSize * 1.2;
     const subY = H / 2 + mainSize * 0.48;
 
@@ -309,14 +313,12 @@ input:focus, textarea:focus {
 
     let img = o.getImageData(0, 0, W, H).data;
 
-    // Sample BECKER - much tighter grid on mobile for sharper edges
-    const beckerStep = isMobile ? 0.6 : 1.5;
-    const beckerThreshold = isMobile ? 0.7 : 0.55;
-    for (let y = 0; y < H; y += beckerStep) {
-      for (let x = 0; x < W; x += beckerStep) {
+    // Sample BECKER with normal density
+    for (let y = 0; y < H; y += 1.5) {
+      for (let x = 0; x < W; x += 1.5) {
         const a = img[(Math.floor(y) * W + Math.floor(x)) * 4 + 3] / 255;
         if (a < 0.15) continue;
-        if (Math.random() > beckerThreshold) continue;
+        if (Math.random() > 0.55) continue;
 
         addParticle(x, y, W, H);
       }
@@ -341,14 +343,12 @@ input:focus, textarea:focus {
 
     img = o.getImageData(0, 0, W, H).data;
 
-    // Sample subtitle - much tighter grid on mobile for sharper edges
-    const subStep = isMobile ? 0.25 : 0.6;
-    const subThreshold = isMobile ? 0.9 : 0.8;
-    for (let y = 0; y < H; y += subStep) {
-      for (let x = 0; x < W; x += subStep) {
+    // Sample subtitle with fine density for readability
+    for (let y = 0; y < H; y += 0.6) {
+      for (let x = 0; x < W; x += 0.6) {
         const a = img[(Math.floor(y) * W + Math.floor(x)) * 4 + 3] / 255;
         if (a < 0.1) continue;
-        if (Math.random() > subThreshold) continue;
+        if (Math.random() > 0.8) continue;
 
         addParticle(x, y, W, H);
       }
@@ -456,7 +456,7 @@ input:focus, textarea:focus {
 
       if (b > 0.01) {
         ctx.fillStyle = `rgba(255,255,255,${b})`;
-        ctx.fillRect(p.x, p.y, 1, 1);
+        ctx.fillRect(p.x, p.y, pixelSize, pixelSize);
       }
     }
 
