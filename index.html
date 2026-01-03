@@ -293,7 +293,9 @@ input:focus, textarea:focus {
     o.font = `700 ${mainSize}px Arial`;
     mainSize *= (W * 0.55) / o.measureText("BECKER").width;
 
-    let subSize = mainSize * 0.14;
+    // Subtitle 25% larger on mobile for better readability
+    const isMobile = W < 768;
+    let subSize = mainSize * (isMobile ? 0.18 : 0.14);
     const mainY = H / 2 - subSize * 1.2;
     const subY = H / 2 + mainSize * 0.48;
 
@@ -477,17 +479,7 @@ input:focus, textarea:focus {
     mouse.y = -9999;
   });
 
-  // Touch support for mobile
-  canvas.addEventListener("touchmove", e => {
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    mouse.x = touch.clientX - rect.left;
-    mouse.y = touch.clientY - rect.top;
-  }, { passive: true });
-  canvas.addEventListener("touchend", () => {
-    mouse.x = -9999;
-    mouse.y = -9999;
-  });
+  // Touch support disabled for mobile - interaction only on desktop
 
   window.addEventListener("resize", resize);
   window.addEventListener("scroll", () => {}, { passive: true });
@@ -509,7 +501,7 @@ input:focus, textarea:focus {
     </div>
 
     <!-- 2x2 Grid -->
-    <div class="grid md:grid-cols-2 gap-8">
+    <div class="grid md:grid-cols-2 gap-8 justify-items-center">
 
       <!-- TOP-LEFT: What we do -->
       <div class="bg-noir-800 border border-white/10 rounded-lg p-8 fade-in box-glow">
