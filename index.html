@@ -256,6 +256,11 @@ input:focus, textarea:focus {
   <!-- Particle Canvas -->
   <canvas id="particleCanvas" class="absolute inset-0 w-full h-full"></canvas>
 
+  <!-- Mobile Subtitle (hidden on desktop) -->
+  <div id="mobileSubtitle" class="absolute left-1/2 -translate-x-1/2 text-white/80 text-sm tracking-[0.3em] font-light md:hidden" style="top: 58%;">
+    AUTOMATION & DESIGN
+  </div>
+
   <!-- Scroll Indicator -->
   <div id="scrollIndicator" class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-600 z-10 transition-opacity duration-300">
     <span class="text-xs tracking-widest uppercase">Scroll</span>
@@ -269,6 +274,7 @@ input:focus, textarea:focus {
   const canvas = document.getElementById("particleCanvas");
   const ctx = canvas.getContext("2d");
   const scrollIndicator = document.getElementById("scrollIndicator");
+  const mobileSubtitle = document.getElementById("mobileSubtitle");
 
   let W, H;
   let particles = [];
@@ -294,12 +300,11 @@ input:focus, textarea:focus {
     o.font = `700 ${mainSize}px Arial`;
     mainSize *= (W * 0.55) / o.measureText("BECKER").width;
 
-    // Subtitle significantly larger on mobile for better readability
     const isMobile = W < 768;
-    let subSize = mainSize * (isMobile ? 0.22 : 0.14);
+    let subSize = mainSize * 0.14;
 
-    // Larger pixels on mobile for clearer text
-    pixelSize = isMobile ? 2 : 1;
+    // Reset pixel size
+    pixelSize = 1;
     const mainY = H / 2 - subSize * 1.2;
     const subY = H / 2 + mainSize * 0.48;
 
@@ -324,33 +329,35 @@ input:focus, textarea:focus {
       }
     }
 
-    // Second pass: Draw and sample AUTOMATION & DESIGN (finer sampling for readability)
-    o.clearRect(0, 0, W, H);
-    o.font = `500 ${subSize}px Arial`;
+    // Second pass: Draw and sample AUTOMATION & DESIGN (only on desktop)
+    if (!isMobile) {
+      o.clearRect(0, 0, W, H);
+      o.font = `500 ${subSize}px Arial`;
 
-    // Draw text with manual letter-spacing
-    const text = "AUTOMATION & DESIGN";
-    const spacing = subSize * 0.55; // Letter spacing - increased for readability
-    let totalWidth = 0;
-    for (let i = 0; i < text.length; i++) {
-      totalWidth += o.measureText(text[i]).width + (i < text.length - 1 ? spacing : 0);
-    }
-    let xPos = (W - totalWidth) / 2;
-    for (let i = 0; i < text.length; i++) {
-      o.fillText(text[i], xPos, subY);
-      xPos += o.measureText(text[i]).width + spacing;
-    }
+      // Draw text with manual letter-spacing
+      const text = "AUTOMATION & DESIGN";
+      const spacing = subSize * 0.55;
+      let totalWidth = 0;
+      for (let i = 0; i < text.length; i++) {
+        totalWidth += o.measureText(text[i]).width + (i < text.length - 1 ? spacing : 0);
+      }
+      let xPos = (W - totalWidth) / 2;
+      for (let i = 0; i < text.length; i++) {
+        o.fillText(text[i], xPos, subY);
+        xPos += o.measureText(text[i]).width + spacing;
+      }
 
-    img = o.getImageData(0, 0, W, H).data;
+      img = o.getImageData(0, 0, W, H).data;
 
-    // Sample subtitle with fine density for readability
-    for (let y = 0; y < H; y += 0.6) {
-      for (let x = 0; x < W; x += 0.6) {
-        const a = img[(Math.floor(y) * W + Math.floor(x)) * 4 + 3] / 255;
-        if (a < 0.1) continue;
-        if (Math.random() > 0.8) continue;
+      // Sample subtitle with fine density for readability
+      for (let y = 0; y < H; y += 0.6) {
+        for (let x = 0; x < W; x += 0.6) {
+          const a = img[(Math.floor(y) * W + Math.floor(x)) * 4 + 3] / 255;
+          if (a < 0.1) continue;
+          if (Math.random() > 0.8) continue;
 
-        addParticle(x, y, W, H);
+          addParticle(x, y, W, H);
+        }
       }
     }
   }
@@ -395,9 +402,12 @@ input:focus, textarea:focus {
     const rect = heroSection.getBoundingClientRect();
     scrollProgress = Math.max(0, Math.min(1, -rect.top / (H * 0.35)));
 
-    // Fade scroll indicator quickly
+    // Fade scroll indicator and mobile subtitle quickly
     if (scrollIndicator) {
       scrollIndicator.style.opacity = Math.max(0, 1 - scrollProgress * 5);
+    }
+    if (mobileSubtitle) {
+      mobileSubtitle.style.opacity = Math.max(0, 1 - scrollProgress * 3);
     }
 
     // Much stronger explosion force with aggressive easing
