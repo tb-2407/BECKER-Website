@@ -309,13 +309,14 @@ input:focus, textarea:focus {
 
     let img = o.getImageData(0, 0, W, H).data;
 
-    // Sample BECKER - tighter grid on mobile for sharper edges
-    const beckerStep = isMobile ? 1.0 : 1.5;
+    // Sample BECKER - much tighter grid on mobile for sharper edges
+    const beckerStep = isMobile ? 0.6 : 1.5;
+    const beckerThreshold = isMobile ? 0.7 : 0.55;
     for (let y = 0; y < H; y += beckerStep) {
       for (let x = 0; x < W; x += beckerStep) {
         const a = img[(Math.floor(y) * W + Math.floor(x)) * 4 + 3] / 255;
         if (a < 0.15) continue;
-        if (Math.random() > 0.55) continue;
+        if (Math.random() > beckerThreshold) continue;
 
         addParticle(x, y, W, H);
       }
@@ -340,13 +341,14 @@ input:focus, textarea:focus {
 
     img = o.getImageData(0, 0, W, H).data;
 
-    // Sample subtitle - tighter grid on mobile for sharper edges
-    const subStep = isMobile ? 0.4 : 0.6;
+    // Sample subtitle - much tighter grid on mobile for sharper edges
+    const subStep = isMobile ? 0.25 : 0.6;
+    const subThreshold = isMobile ? 0.9 : 0.8;
     for (let y = 0; y < H; y += subStep) {
       for (let x = 0; x < W; x += subStep) {
         const a = img[(Math.floor(y) * W + Math.floor(x)) * 4 + 3] / 255;
         if (a < 0.1) continue;
-        if (Math.random() > 0.8) continue;
+        if (Math.random() > subThreshold) continue;
 
         addParticle(x, y, W, H);
       }
