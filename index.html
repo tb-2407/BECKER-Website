@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>BECKER Automation & Design</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        noir: {
+          900: '#0a0a0a',
+          800: '#111111',
+          700: '#1a1a1a',
+          600: '#222222',
+        },
+        accent: '#ffffff',
+      },
+      fontFamily: {
+        mono: ['JetBrains Mono', 'monospace'],
+      }
+    }
+  }
+}
+</script>
+<style>
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-family: 'JetBrains Mono', monospace;
+  background: #0a0a0a;
+  color: #e0e0e0;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #fff;
+}
+
+/* Noise Overlay */
+.noise-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* Scanlines */
+.scanlines::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9998;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.1) 0px,
+    rgba(0,0,0,0.1) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
+
+/* Glow Effects */
+.text-glow {
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 0 0 40px rgba(255, 255, 255, 0.15);
+}
+.box-glow {
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.1), inset 0 0 30px rgba(255, 255, 255, 0.02);
+}
+.border-glow {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+/* Wavy Line Animation */
+.wavy-line {
+  stroke-dasharray: 200;
+  animation: waveDash 3s ease-in-out infinite;
+}
+@keyframes waveDash {
+  0%, 100% { stroke-dashoffset: 0; }
+  50% { stroke-dashoffset: 20; }
+}
+
+/* Float Animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Pulse Glow */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Fade In Animation */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Navigation */
+.nav-link {
+  position: relative;
+  transition: color 0.3s ease;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #fff;
+  transition: width 0.3s ease;
+}
+.nav-link:hover::after {
+  width: 100%;
+}
+.nav-link:hover {
+  color: #fff;
+}
+
+/* App Icon Hover */
+.app-icon {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.app-icon:hover {
+  transform: scale(1.1) translateY(-5px);
+  box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+}
+
+/* Project Card Hover */
+.project-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.project-card:hover {
+  transform: translateX(10px);
+  box-shadow: -5px 0 30px rgba(255, 255, 255, 0.1);
+}
+
+/* Button Hover */
+.btn-submit {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.btn-submit::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.2), transparent);
+  transition: left 0.5s ease;
+}
+.btn-submit:hover::before {
+  left: 100%;
+}
+.btn-submit:hover {
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+/* n8n Node Animation */
+@keyframes nodeFlow {
+  0% { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+.node-connection {
+  stroke-dasharray: 5, 5;
+  animation: nodeFlow 2s linear infinite;
+}
+
+/* Input Focus */
+input:focus, textarea:focus {
+  outline: none;
+  border-color: #fff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+/* Background Grid Pattern */
+.grid-pattern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.03;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+</style>
+</head>
+<body class="scanlines">
+<div class="noise-overlay"></div>
+<div class="grid-pattern"></div>
+
+<!-- Fixed Navigation -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-noir-900/80 backdrop-blur-md border-b border-white/5 transition-all duration-300">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+    <a href="#hero" class="text-lg font-bold tracking-wider text-white hover:text-gray-400 transition-colors">
+      BECKER
+    </a>
+    <div class="flex gap-8 text-sm tracking-wide">
+      <a href="#about" class="nav-link text-gray-400 uppercase">About</a>
+      <a href="#projects" class="nav-link text-gray-400 uppercase">Projects</a>
+      <a href="#contact" class="nav-link text-gray-400 uppercase">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<!-- SECTION 1: Hero/Landing with Particle Canvas -->
+<section id="hero" class="h-screen relative overflow-hidden">
+  <!-- Particle Canvas -->
+  <canvas id="particleCanvas" class="absolute inset-0 w-full h-full"></canvas>
+
+  <!-- Scroll Indicator -->
+  <div id="scrollIndicator" class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-600 z-10 transition-opacity duration-300">
+    <span class="text-xs tracking-widest uppercase">Scroll</span>
+    <div class="w-px h-10 bg-gradient-to-b from-white to-transparent pulse-glow"></div>
+  </div>
+</section>
+
+<script>
+// BECKER + AUTOMATION & DESIGN Particle Animation with Scroll Explosion
+(function() {
+  const canvas = document.getElementById("particleCanvas");
+  const ctx = canvas.getContext("2d");
+  const scrollIndicator = document.getElementById("scrollIndicator");
+
+  let W, H;
+  let particles = [];
+  let mouse = { x: -9999, y: -9999 };
+  let scrollProgress = 0;
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+    build();
+  }
+
+  function build() {
+    particles = [];
+    const off = document.createElement("canvas");
+    off.width = W;
+    off.height = H;
+    const o = off.getContext("2d", { willReadFrequently: true });
+
+    // Calculate sizes
+    let mainSize = 200;
+    o.font = `700 ${mainSize}px Arial`;
+    mainSize *= (W * 0.55) / o.measureText("BECKER").width;
+
+    let subSize = mainSize * 0.14;
+    const mainY = H / 2 - subSize * 1.2;
+    const subY = H / 2 + mainSize * 0.48;
+
+    // First pass: Draw and sample BECKER (coarser sampling)
+    o.clearRect(0, 0, W, H);
+    o.font = `700 ${mainSize}px Arial`;
+    o.textAlign = "center";
+    o.textBaseline = "middle";
+    o.fillStyle = "#fff";
+    o.fillText("BECKER", W / 2, mainY);
+
+    let img = o.getImageData(0, 0, W, H).data;
+
+    // Sample BECKER with normal density
+    for (let y = 0; y < H; y += 1.5) {
+      for (let x = 0; x < W; x += 1.5) {
+        const a = img[(Math.floor(y) * W + Math.floor(x)) * 4 + 3] / 255;
+        if (a < 0.15) continue;
+        if (Math.random() > 0.55) continue;
+
+        addParticle(x, y, W, H);
+      }
+    }
+
+    // Second pass: Draw and sample AUTOMATION & DESIGN (finer sampling for readability)
+    o.clearRect(0, 0, W, H);
+    o.font = `500 ${subSize}px Arial`;
+
+    // Draw text with manual letter-spacing
+    const text = "AUTOMATION & DESIGN";
+    const spacing = subSize * 0.55; // Letter spacing - increased for readability
+    let totalWidth = 0;
+    for (let i = 0; i < text.length; i++) {
+      totalWidth += o.measureText(text[i]).width + (i < text.length - 1 ? spacing : 0);
+    }
+    let xPos = (W - totalWidth) / 2;
+    for (let i = 0; i < text.length; i++) {
+      o.fillText(text[i], xPos, subY);
+      xPos += o.measureText(text[i]).width + spacing;
+    }
+
+    img = o.getImageData(0, 0, W, H).data;
+
+    // Sample subtitle with very fine density for better readability
+    for (let y = 0; y < H; y += 0.6) {
+      for (let x = 0; x < W; x += 0.6) {
+        const a = img[(Math.floor(y) * W + Math.floor(x)) * 4 + 3] / 255;
+        if (a < 0.1) continue;
+        if (Math.random() > 0.8) continue;
+
+        addParticle(x, y, W, H);
+      }
+    }
+  }
+
+  function addParticle(x, y, W, H) {
+    const depth = 0.3;
+    const centerX = W / 2;
+    const centerY = H / 2;
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+    const explosionAngle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.6;
+    const explosionSpeed = 3 + Math.random() * 5;
+
+    particles.push({
+      x, y,
+      ox: x,
+      oy: y,
+      z: depth,
+      vx: 0,
+      vy: 0,
+      base: 0.4 + depth * 0.6,
+      row: y | 0,
+      twinkleSpeed: 0.5 + Math.random() * 2,
+      twinkleOffset: Math.random() * Math.PI * 2,
+      waveOffsetX: Math.random() * Math.PI * 2,
+      waveOffsetY: Math.random() * Math.PI * 2,
+      explosionX: Math.cos(explosionAngle) * explosionSpeed,
+      explosionY: Math.sin(explosionAngle) * explosionSpeed,
+      explosionDist: dist
+    });
+  }
+
+  let time = 0;
+
+  function update() {
+    time += 0.016;
+
+    // Get scroll progress (0 to 1 over ~35% of viewport height - much faster explosion)
+    const heroSection = document.getElementById("hero");
+    const rect = heroSection.getBoundingClientRect();
+    scrollProgress = Math.max(0, Math.min(1, -rect.top / (H * 0.35)));
+
+    // Fade scroll indicator quickly
+    if (scrollIndicator) {
+      scrollIndicator.style.opacity = Math.max(0, 1 - scrollProgress * 5);
+    }
+
+    // Much stronger explosion force with aggressive easing
+    const explosionForce = Math.pow(scrollProgress, 1.2) * 40;
+
+    for (const p of particles) {
+      // Base wave animation (reduced when exploding)
+      const waveStrength = 1 - scrollProgress;
+      const waveX = Math.sin(time * 0.8 + p.waveOffsetX) * 2.5 * waveStrength;
+      const waveY = Math.sin(time * 0.6 + p.waveOffsetY) * 2.5 * waveStrength;
+
+      // Target position: original + wave + explosion
+      const explosionOffsetX = p.explosionX * explosionForce * (1 + p.explosionDist * 0.01);
+      const explosionOffsetY = p.explosionY * explosionForce * (1 + p.explosionDist * 0.01);
+
+      const targetX = p.ox + waveX + explosionOffsetX;
+      const targetY = p.oy + waveY + explosionOffsetY;
+
+      // Smoother interpolation during explosion
+      const returnStrength = scrollProgress > 0 ? 0.08 : 0.05;
+      p.vx += (targetX - p.x) * returnStrength;
+      p.vy += (targetY - p.y) * returnStrength;
+
+      // Mouse interaction (reduced during explosion)
+      if (scrollProgress < 0.5) {
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+
+        if (d < 140) {
+          const f = (1 - d / 140) * p.z * 8 * (1 - scrollProgress * 2);
+          p.vx += (dx / d) * f;
+          p.vy += (dy / d) * f;
+        }
+      }
+
+      p.vx *= 0.82;
+      p.vy *= 0.82;
+      p.x += p.vx;
+      p.y += p.vy;
+    }
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Fade out particles faster as they explode
+    const alphaMultiplier = Math.max(0, 1 - Math.pow(scrollProgress, 1.5) * 1.2);
+
+    for (const p of particles) {
+      let scan = (p.row % 3 === 0) ? 0.85 : 1;
+      const twinkle = 1 + Math.sin(time * p.twinkleSpeed * 3 + p.twinkleOffset) * 0.4;
+
+      let b = p.base * scan * twinkle * alphaMultiplier;
+      b = Math.min(1, Math.max(0, b));
+
+      if (b > 0.01) {
+        ctx.fillStyle = `rgba(255,255,255,${b})`;
+        ctx.fillRect(p.x, p.y, 1, 1);
+      }
+    }
+
+    // Scanlines (also fade)
+    ctx.fillStyle = `rgba(0,0,0,${0.035 * (1 - scrollProgress)})`;
+    for (let y = 0; y < H; y += 2) {
+      ctx.fillRect(0, y, W, 1);
+    }
+  }
+
+  function loop() {
+    update();
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  canvas.addEventListener("mousemove", e => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+  });
+  canvas.addEventListener("mouseleave", () => {
+    mouse.x = -9999;
+    mouse.y = -9999;
+  });
+
+  // Touch support for mobile
+  canvas.addEventListener("touchmove", e => {
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    mouse.x = touch.clientX - rect.left;
+    mouse.y = touch.clientY - rect.top;
+  }, { passive: true });
+  canvas.addEventListener("touchend", () => {
+    mouse.x = -9999;
+    mouse.y = -9999;
+  });
+
+  window.addEventListener("resize", resize);
+  window.addEventListener("scroll", () => {}, { passive: true });
+
+  resize();
+  loop();
+})();
+</script>
+
+<!-- SECTION 2: About -->
+<section id="about" class="min-h-screen py-24 px-6 relative">
+  <div class="max-w-6xl mx-auto">
+    <!-- Section Header -->
+    <div class="text-center mb-16 fade-in">
+      <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">
+        <span class="text-gray-500">//</span> About
+      </h2>
+      <div class="w-24 h-px bg-white/30 mx-auto"></div>
+    </div>
+
+    <!-- 2x2 Grid -->
+    <div class="grid md:grid-cols-2 gap-8">
+
+      <!-- TOP-LEFT: What we do -->
+      <div class="bg-noir-800 border border-white/10 rounded-lg p-8 fade-in box-glow">
+        <h3 class="text-2xl font-bold text-white mb-6">What we do</h3>
+        <p class="text-gray-400 leading-relaxed mb-6">
+          We craft digital experiences that merge elegant design with powerful automation.
+          Our expertise spans three core areas:
+        </p>
+        <ul class="space-y-4 text-gray-300">
+          <li class="flex items-start gap-3">
+            <span class="text-white mt-1">&#9654;</span>
+            <span><strong class="text-white">Web Design</strong> — Minimalist, responsive websites with noir aesthetics</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="text-white mt-1">&#9654;</span>
+            <span><strong class="text-white">iOS Apps</strong> — Native Swift applications with intuitive UX</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="text-white mt-1">&#9654;</span>
+            <span><strong class="text-white">n8n Automation</strong> — Workflow automation & system integration</span>
+          </li>
+        </ul>
+
+        <!-- Wavy Lines Decoration -->
+        <svg class="w-full h-6 mt-8 opacity-30" viewBox="0 0 300 20">
+          <path class="wavy-line" d="M0,10 Q15,5 30,10 T60,10 T90,10 T120,10 T150,10 T180,10 T210,10 T240,10 T270,10 T300,10"
+                fill="none" stroke="#fff" stroke-width="1"/>
+          <path class="wavy-line" d="M0,15 Q15,10 30,15 T60,15 T90,15 T120,15 T150,15 T180,15 T210,15 T240,15 T270,15 T300,15"
+                fill="none" stroke="#fff" stroke-width="0.5" style="animation-delay: 0.5s;"/>
+        </svg>
+      </div>
+
+      <!-- TOP-RIGHT: Website Screenshot -->
+      <div class="bg-noir-800 border border-white/10 rounded-lg p-8 fade-in" style="animation-delay: 0.1s;">
+        <div class="bg-noir-900 rounded-lg border border-white/5 overflow-hidden">
+          <!-- Browser Mock -->
+          <div class="flex items-center gap-2 px-4 py-3 bg-noir-700 border-b border-white/5">
+            <div class="w-3 h-3 rounded-full bg-white/40"></div>
+            <div class="w-3 h-3 rounded-full bg-white/25"></div>
+            <div class="w-3 h-3 rounded-full bg-white/15"></div>
+            <div class="ml-4 flex-1 bg-noir-900 rounded px-3 py-1 text-xs text-gray-500">
+              turbo.becker.design
+            </div>
+          </div>
+          <!-- Screenshot Placeholder -->
+          <div class="aspect-video bg-gradient-to-br from-noir-800 to-noir-900 flex items-center justify-center p-8">
+            <div class="text-center">
+              <div class="w-16 h-16 mx-auto mb-4 border-2 border-white/30 rounded-lg flex items-center justify-center">
+                <svg class="w-8 h-8 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <p class="text-gray-500 text-sm">Website Preview</p>
+            </div>
+          </div>
+        </div>
+        <p class="text-center text-gray-500 text-sm mt-4 tracking-wide">Turbo designt</p>
+      </div>
+
+      <!-- BOTTOM-LEFT: n8n Automation -->
+      <div class="bg-noir-800 border border-white/10 rounded-lg p-8 fade-in" style="animation-delay: 0.2s;">
+        <h3 class="text-lg font-semibold text-gray-400 mb-4">(n8n example)</h3>
+
+        <!-- n8n Flow Diagram -->
+        <div class="bg-noir-900 rounded-lg p-6 border border-white/5">
+          <svg class="w-full h-40" viewBox="0 0 400 120">
+            <!-- Connections -->
+            <path class="node-connection" d="M70,60 L130,60" stroke="#fff" stroke-width="2" fill="none"/>
+            <path class="node-connection" d="M190,60 L250,60" stroke="#fff" stroke-width="2" fill="none" style="animation-delay: 0.3s;"/>
+            <path class="node-connection" d="M310,60 L370,40" stroke="#fff" stroke-width="2" fill="none" style="animation-delay: 0.6s;"/>
+            <path class="node-connection" d="M310,60 L370,80" stroke="#fff" stroke-width="2" fill="none" style="animation-delay: 0.6s;"/>
+
+            <!-- Nodes -->
+            <!-- Trigger Node -->
+            <rect x="20" y="40" width="50" height="40" rx="8" fill="#1a1a1a" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="45" cy="60" r="8" fill="#fff" opacity="0.3"/>
+            <circle cx="45" cy="60" r="4" fill="#fff"/>
+
+            <!-- Process Node 1 -->
+            <rect x="130" y="40" width="60" height="40" rx="8" fill="#1a1a1a" stroke="#444" stroke-width="1.5"/>
+            <path d="M150,55 L170,55 M150,65 L165,65" stroke="#666" stroke-width="2" stroke-linecap="round"/>
+
+            <!-- Process Node 2 -->
+            <rect x="250" y="40" width="60" height="40" rx="8" fill="#1a1a1a" stroke="#444" stroke-width="1.5"/>
+            <rect x="265" y="52" width="30" height="16" rx="3" fill="none" stroke="#666" stroke-width="1.5"/>
+
+            <!-- Output Nodes -->
+            <rect x="370" y="25" width="30" height="30" rx="6" fill="#1a1a1a" stroke="#fff" stroke-width="1" opacity="0.7"/>
+            <rect x="370" y="65" width="30" height="30" rx="6" fill="#1a1a1a" stroke="#fff" stroke-width="1" opacity="0.7"/>
+
+            <!-- Labels -->
+            <text x="45" y="100" fill="#666" font-size="10" text-anchor="middle">Trigger</text>
+            <text x="160" y="100" fill="#666" font-size="10" text-anchor="middle">Process</text>
+            <text x="280" y="100" fill="#666" font-size="10" text-anchor="middle">Transform</text>
+            <text x="385" y="110" fill="#666" font-size="10" text-anchor="middle">Output</text>
+          </svg>
+        </div>
+
+        <p class="text-gray-500 text-sm mt-4 tracking-wide">automations/structure management</p>
+      </div>
+
+      <!-- BOTTOM-RIGHT: Our Apps -->
+      <div class="bg-noir-800 border border-white/10 rounded-lg p-8 fade-in" style="animation-delay: 0.3s;">
+        <h3 class="text-2xl font-bold text-white mb-8">Our Apps!</h3>
+
+        <!-- App Icons -->
+        <div class="flex justify-center gap-8">
+          <!-- Bseed -->
+          <div class="text-center app-icon cursor-pointer">
+            <div class="w-20 h-20 bg-noir-900 rounded-2xl border border-white/20 flex items-center justify-center mb-3 mx-auto">
+              <svg viewBox="0 0 40 40" class="w-10 h-10">
+                <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+                      fill="#fff" font-family="JetBrains Mono" font-weight="700" font-size="20">B</text>
+                <circle cx="30" cy="12" r="4" fill="none" stroke="#fff" stroke-width="1" opacity="0.5"/>
+              </svg>
+            </div>
+            <span class="text-gray-400 text-sm">Bseed</span>
+          </div>
+
+          <!-- Bcam -->
+          <div class="text-center app-icon cursor-pointer">
+            <div class="w-20 h-20 bg-noir-900 rounded-2xl border border-white/20 flex items-center justify-center mb-3 mx-auto">
+              <svg viewBox="0 0 40 40" class="w-10 h-10">
+                <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+                      fill="#fff" font-family="JetBrains Mono" font-weight="700" font-size="20">B</text>
+                <circle cx="20" cy="20" r="12" fill="none" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                <circle cx="20" cy="20" r="6" fill="none" stroke="#fff" stroke-width="1" opacity="0.5"/>
+              </svg>
+            </div>
+            <span class="text-gray-400 text-sm">Bcam</span>
+          </div>
+
+          <!-- Bnote -->
+          <div class="text-center app-icon cursor-pointer">
+            <div class="w-20 h-20 bg-noir-900 rounded-2xl border border-white/20 flex items-center justify-center mb-3 mx-auto">
+              <svg viewBox="0 0 40 40" class="w-10 h-10">
+                <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+                      fill="#fff" font-family="JetBrains Mono" font-weight="700" font-size="20">B</text>
+                <line x1="10" y1="30" x2="30" y2="30" stroke="#fff" stroke-width="1" opacity="0.5"/>
+                <line x1="10" y1="34" x2="25" y2="34" stroke="#fff" stroke-width="1" opacity="0.3"/>
+              </svg>
+            </div>
+            <span class="text-gray-400 text-sm">Bnote</span>
+          </div>
+        </div>
+
+        <p class="text-center text-gray-600 text-xs mt-8 tracking-wide">Noir Fiction Style iOS Apps</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3: Projects -->
+<section id="projects" class="min-h-screen py-24 px-6 bg-noir-800/30 relative">
+  <div class="max-w-6xl mx-auto">
+    <!-- Section Header -->
+    <div class="text-center mb-16 fade-in">
+      <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">
+        <span class="text-gray-500">//</span> Projects
+      </h2>
+      <div class="w-24 h-px bg-white/30 mx-auto"></div>
+    </div>
+
+    <!-- Project Cards -->
+    <div class="space-y-8">
+
+      <!-- Project 1 -->
+      <div class="project-card bg-noir-800 border border-white/10 rounded-lg overflow-hidden fade-in">
+        <div class="flex flex-col md:flex-row">
+          <!-- Text Content -->
+          <div class="md:w-1/2 p-8 flex flex-col justify-center">
+            <div class="flex items-center gap-4 mb-4">
+              <span class="text-4xl font-bold text-white/20">01</span>
+              <h3 class="text-xl font-bold text-white">E-Commerce Platform</h3>
+            </div>
+            <p class="text-gray-400 leading-relaxed mb-4">
+              A modern online store with seamless checkout flow, inventory management,
+              and real-time analytics dashboard. Built with performance and conversion in mind.
+            </p>
+            <div class="flex gap-2 flex-wrap">
+              <span class="px-3 py-1 bg-noir-900 text-white text-xs rounded-full border border-white/20">React</span>
+              <span class="px-3 py-1 bg-noir-900 text-white text-xs rounded-full border border-white/20">Node.js</span>
+              <span class="px-3 py-1 bg-noir-900 text-white text-xs rounded-full border border-white/20">Stripe</span>
+            </div>
+          </div>
+          <!-- Screenshot -->
+          <div class="md:w-1/2 bg-noir-900 p-6">
+            <div class="bg-noir-700 rounded-lg border border-white/5 aspect-video flex items-center justify-center">
+              <div class="text-center">
+                <svg class="w-12 h-12 mx-auto text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <p class="text-gray-600 text-sm">website example</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 2 -->
+      <div class="project-card bg-noir-800 border border-white/10 rounded-lg overflow-hidden fade-in" style="animation-delay: 0.1s;">
+        <div class="flex flex-col md:flex-row">
+          <!-- Text Content -->
+          <div class="md:w-1/2 p-8 flex flex-col justify-center">
+            <div class="flex items-center gap-4 mb-4">
+              <span class="text-4xl font-bold text-white/20">02</span>
+              <h3 class="text-xl font-bold text-white">Workflow Automation Suite</h3>
+            </div>
+            <p class="text-gray-400 leading-relaxed mb-4">
+              Custom n8n workflows connecting CRM, email marketing, and inventory systems.
+              Automated reporting saves 20+ hours weekly in manual data processing.
+            </p>
+            <div class="flex gap-2 flex-wrap">
+              <span class="px-3 py-1 bg-noir-900 text-white text-xs rounded-full border border-white/20">n8n</span>
+              <span class="px-3 py-1 bg-noir-900 text-white text-xs rounded-full border border-white/20">API Integration</span>
+              <span class="px-3 py-1 bg-noir-900 text-white text-xs rounded-full border border-white/20">Webhooks</span>
+            </div>
+          </div>
+          <!-- Screenshot -->
+          <div class="md:w-1/2 bg-noir-900 p-6">
+            <div class="bg-noir-700 rounded-lg border border-white/5 aspect-video flex items-center justify-center">
+              <div class="text-center">
+                <svg class="w-12 h-12 mx-auto text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <p class="text-gray-600 text-sm">website example</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 3 -->
+      <div class="project-card bg-noir-800 border border-white/10 rounded-lg overflow-hidden fade-in" style="animation-delay: 0.2s;">
+        <div class="flex flex-col md:flex-row">
+          <!-- Text Content -->
+          <div class="md:w-1/2 p-8 flex flex-col justify-center">
+            <div class="flex items-center gap-4 mb-4">
+              <span class="text-4xl font-bold text-white/20">03</span>
+              <h3 class="text-xl font-bold text-white">iOS Productivity App</h3>
+            </div>
+            <p class="text-gray-400 leading-relaxed mb-4">
+              Native Swift application featuring offline-first architecture, iCloud sync,
+              and an intuitive gesture-based interface. Dark mode optimized with OLED support.
+            </p>
+            <div class="flex gap-2 flex-wrap">
+              <span class="px-3 py-1 bg-noir-900 text-white text-xs rounded-full border border-white/20">Swift</span>
+              <span class="px-3 py-1 bg-noir-900 text-white text-xs rounded-full border border-white/20">SwiftUI</span>
+              <span class="px-3 py-1 bg-noir-900 text-white text-xs rounded-full border border-white/20">CloudKit</span>
+            </div>
+          </div>
+          <!-- Screenshot -->
+          <div class="md:w-1/2 bg-noir-900 p-6">
+            <div class="bg-noir-700 rounded-lg border border-white/5 aspect-video flex items-center justify-center">
+              <div class="text-center">
+                <svg class="w-12 h-12 mx-auto text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <p class="text-gray-600 text-sm">website example</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4: Contact -->
+<section id="contact" class="min-h-screen py-24 px-6 flex items-center relative">
+  <div class="max-w-2xl mx-auto w-full">
+    <!-- Section Header -->
+    <div class="text-center mb-12 fade-in">
+      <h2 class="text-4xl md:text-5xl font-bold text-white mb-2">BECKER</h2>
+      <p class="text-xl text-gray-400 tracking-wide">contact us</p>
+      <div class="w-24 h-px bg-white/30 mx-auto mt-6"></div>
+    </div>
+
+    <!-- Contact Form -->
+    <form id="contactForm" class="space-y-6 fade-in" style="animation-delay: 0.1s;">
+      <!-- Message Textarea -->
+      <div>
+        <label class="block text-gray-400 text-sm mb-2 tracking-wide">Your Message</label>
+        <textarea
+          id="message"
+          name="message"
+          rows="6"
+          placeholder="your idea..."
+          class="w-full bg-noir-800 border border-white/10 rounded-lg px-5 py-4 text-white placeholder-gray-600 resize-none transition-all duration-300 focus:border-white"
+          required
+        ></textarea>
+      </div>
+
+      <!-- Email Input -->
+      <div>
+        <label class="block text-gray-400 text-sm mb-2 tracking-wide">Return Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="your@email.com"
+          class="w-full bg-noir-800 border border-white/10 rounded-lg px-5 py-4 text-white placeholder-gray-600 transition-all duration-300 focus:border-white"
+          required
+        >
+      </div>
+
+      <!-- Submit Button -->
+      <div class="pt-4">
+        <button
+          type="submit"
+          class="btn-submit w-full bg-white text-noir-900 font-bold py-4 px-8 rounded-lg tracking-wider uppercase"
+        >
+          Send
+        </button>
+      </div>
+
+      <!-- Success Message (hidden by default) -->
+      <div id="successMessage" class="hidden text-center py-4 text-white">
+        <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        <p>Message sent successfully!</p>
+      </div>
+    </form>
+
+    <!-- Decorative Elements -->
+    <div class="mt-16 text-center text-gray-600 text-sm fade-in" style="animation-delay: 0.2s;">
+      <svg class="w-32 h-4 mx-auto mb-4 opacity-30" viewBox="0 0 120 10">
+        <path class="wavy-line" d="M0,5 Q10,0 20,5 T40,5 T60,5 T80,5 T100,5 T120,5"
+              fill="none" stroke="#fff" stroke-width="1"/>
+      </svg>
+      <p class="tracking-widest">BECKER Automation & Design</p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="border-t border-white/5 py-8 px-6">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <p class="text-gray-600 text-sm">&copy; 2024 BECKER Automation & Design</p>
+    <div class="flex gap-6 text-gray-600 text-sm">
+      <a href="#" class="hover:text-white transition-colors">Privacy</a>
+      <a href="#" class="hover:text-white transition-colors">Imprint</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Intersection Observer for fade-in animations
+const observerOptions = {
+  root: null,
+  rootMargin: '0px',
+  threshold: 0.1
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('.fade-in').forEach(el => {
+  observer.observe(el);
+});
+
+// Navbar scroll effect
+const navbar = document.getElementById('navbar');
+let lastScroll = 0;
+
+window.addEventListener('scroll', () => {
+  const currentScroll = window.pageYOffset;
+
+  if (currentScroll > 100) {
+    navbar.classList.add('bg-noir-900/95');
+    navbar.classList.remove('bg-noir-900/80');
+  } else {
+    navbar.classList.remove('bg-noir-900/95');
+    navbar.classList.add('bg-noir-900/80');
+  }
+
+  lastScroll = currentScroll;
+});
+
+// Active nav link highlight
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+
+  sections.forEach(section => {
+    const sectionTop = section.offsetTop;
+    const sectionHeight = section.clientHeight;
+
+    if (window.pageYOffset >= sectionTop - 200) {
+      current = section.getAttribute('id');
+    }
+  });
+
+  navLinks.forEach(link => {
+    link.classList.remove('text-white');
+    link.classList.add('text-gray-400');
+
+    if (link.getAttribute('href') === `#${current}`) {
+      link.classList.add('text-white');
+      link.classList.remove('text-gray-400');
+    }
+  });
+});
+
+// Form handling
+const contactForm = document.getElementById('contactForm');
+const successMessage = document.getElementById('successMessage');
+
+contactForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData(contactForm);
+  const message = formData.get('message');
+  const email = formData.get('email');
+
+  // Simulate form submission
+  const submitBtn = contactForm.querySelector('button[type="submit"]');
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = 'Sending...';
+  submitBtn.disabled = true;
+
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  // Show success
+  contactForm.style.display = 'none';
+  successMessage.classList.remove('hidden');
+
+  // Reset after 3 seconds
+  setTimeout(() => {
+    contactForm.style.display = 'block';
+    successMessage.classList.add('hidden');
+    contactForm.reset();
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
+  }, 3000);
+
+  console.log('Form submitted:', { message, email });
+});
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  });
+});
+</script>
+</body>
+</html>
